@@ -170,7 +170,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-05-31 10:10:06 / Modified: 14:55:24" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
+              <time title="Created: 2020-05-31 10:10:06 / Modified: 15:03:29" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
             </span>
 
           
@@ -189,7 +189,7 @@
 <p>这时，我们需要知道对应返回的代码的位置。当然程序也可能会开启某些保护，我们需要想办法去绕过这些保护。</p>
 <h4 id="栈溢出原理"><a href="#栈溢出原理" class="headerlink" title="栈溢出原理"></a>栈溢出原理</h4><p>先讲一下栈的基本概念，简单说栈就是用于保存函数调用信息和局部变量的一段内存空间。</p>
 <p>这里再引入函数调用栈的内容，先来看一张图。</p>
-<img src="../images/函数调用栈.jpg" alt="函数调用栈" style="zoom:60%;" />
+<img src="../images/从ret2text入坑栈溢出/函数调用栈.jpg" alt="函数调用栈" style="zoom:60%;" />
 
 <p>从图中可以看到我们进入到函数后的可以控制的变量所在位置是在“当前栈帧”的“局部变量中”，当我们需要造成栈溢出执行ret2text的时候需要将“返回地址”进行覆盖，所以我们要做的是填满局部变量+覆盖保存的ebp（saved ebp）+覆盖返回地址（retaddr）为我们想要执行的地址。</p>
 <h4 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h4><p>看一下看雪的一道PWN题来具体分析，题目在<a href="https://ctf.pediy.com/itembank.htm" target="_blank" rel="noopener">一鸣惊人</a>，可自行查看详情。</p>
