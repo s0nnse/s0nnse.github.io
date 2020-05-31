@@ -20,19 +20,20 @@
     var CONFIG = {"hostname":"github.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+  <meta name="description" content="开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。 IDA PRO交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。  x64dbgWindows的开源二进制调试器，旨在对您">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="https://github.com/s0nnse/2020/05/28/hello-world/index.html">
+<meta property="og:title" content="PWN常用工具">
+<meta property="og:url" content="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/index.html">
 <meta property="og:site_name" content="s0nnse">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。 IDA PRO交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。  x64dbgWindows的开源二进制调试器，旨在对您">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-05-28T14:10:52.241Z">
-<meta property="article:modified_time" content="2020-05-28T13:31:57.670Z">
+<meta property="article:published_time" content="2020-05-30T12:02:57.000Z">
+<meta property="article:modified_time" content="2020-05-30T14:13:34.268Z">
 <meta property="article:author" content="s0nnse">
+<meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://github.com/s0nnse/2020/05/28/hello-world/">
+<link rel="canonical" href="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/">
 
 
 <script id="page-configurations">
@@ -45,7 +46,7 @@
   };
 </script>
 
-  <title>Hello World | s0nnse</title>
+  <title>PWN常用工具 | s0nnse</title>
   
 
 
@@ -150,7 +151,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/05/28/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -163,7 +164,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Hello World
+          PWN常用工具
         </h1>
 
         <div class="post-meta">
@@ -174,7 +175,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-05-28 22:10:52 / Modified: 21:31:57" itemprop="dateCreated datePublished" datetime="2020-05-28T22:10:52+08:00">2020-05-28</time>
+              <time title="Created: 2020-05-30 20:02:57 / Modified: 22:13:34" itemprop="dateCreated datePublished" datetime="2020-05-30T20:02:57+08:00">2020-05-30</time>
             </span>
 
           
@@ -188,19 +189,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+        <p>开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。</p>
+<h4 id="IDA-PRO"><a href="#IDA-PRO" class="headerlink" title="IDA PRO"></a><a href="">IDA PRO</a></h4><p>交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。</p>
+<h4 id="x64dbg"><a href="#x64dbg" class="headerlink" title=" x64dbg"></a><a href="https://github.com/x64dbg/x64dbg"> x64dbg</a></h4><p>Windows的开源二进制调试器，旨在对您没有源代码的可执行文件进行恶意软件分析和反向工程。有许多可用功能，还有一个全面的<a href="http://plugins.x64dbg.com/" target="_blank" rel="noopener">插件系统</a>可添加您自己的<a href="http://plugins.x64dbg.com/" target="_blank" rel="noopener">插件</a>。</p>
+<h4 id="checksec-sh"><a href="#checksec-sh" class="headerlink" title="checksec.sh"></a><a href="https://github.com/slimm609/checksec.sh">checksec.sh</a></h4><p>Checksec是一个bash脚本，用于检查可执行文件的属性（例如PIE，RELRO，PaX，Canaries，ASLR，Fortify Source）。它最初是由Tobias Klein编写的，其原始资源可以在这里找到：<a href="http://www.trapkit.de/tools/checksec.html" target="_blank" rel="noopener">http</a> : <a href="http://www.trapkit.de/tools/checksec.html" target="_blank" rel="noopener">//www.trapkit.de/tools/checksec.html</a></p>
+<p>查看程序的基本信息，主要查看程序开启了什么保护。</p>
+<h4 id="pwntools"><a href="#pwntools" class="headerlink" title="pwntools"></a><a href="https://github.com/Gallopsled/pwntools">pwntools</a></h4><p>Pwntools是一个CTF框架和漏洞利用开发库。它是用Python编写的，旨在用于快速原型开发和开发，旨在使漏洞利用程序编写尽可能简单。</p>
+<h4 id="peda"><a href="#peda" class="headerlink" title="peda"></a><a href="https://github.com/longld/peda">peda</a></h4><p>PEDA-GDB的Python漏洞利用开发协助。和pwndbg冲突，通过修改.gdbinit文件切换。</p>
+<h4 id="pwndbg"><a href="#pwndbg" class="headerlink" title="pwndbg"></a><a href="https://github.com/pwndbg/pwndbg">pwndbg</a></h4><p>pwndbg是一个GDB插件，它使使用GDB进行调试的工作量减少，重点放在低级软件开发人员，硬件黑客，逆向工程人员和漏洞利用开发人员所需的功能上。</p>
+<h4 id="QIRA"><a href="#QIRA" class="headerlink" title="QIRA"></a><a href="http://qira.me/" target="_blank" rel="noopener">QIRA</a></h4><p>程序运行时跟踪调试工具。</p>
 
     </div>
 
@@ -209,11 +206,21 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/PWN/" rel="tag"># PWN</a>
+          </div>
 
         
 
 
         
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/30/PWN%E5%B8%B8%E8%A7%81%E6%9C%AF%E8%AF%AD/" rel="next" title="PWN常见术语">
+      PWN常见术语 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
       </footer>
     
   </article>
@@ -271,7 +278,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA-PRO"><span class="nav-number">1.</span> <span class="nav-text">IDA PRO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x64dbg"><span class="nav-number">2.</span> <span class="nav-text"> x64dbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#checksec-sh"><span class="nav-number">3.</span> <span class="nav-text">checksec.sh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwntools"><span class="nav-number">4.</span> <span class="nav-text">pwntools</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#peda"><span class="nav-number">5.</span> <span class="nav-text">peda</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwndbg"><span class="nav-number">6.</span> <span class="nav-text">pwndbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QIRA"><span class="nav-number">7.</span> <span class="nav-text">QIRA</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -285,9 +292,13 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">posts</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
       </div>
   </nav>
 </div>
