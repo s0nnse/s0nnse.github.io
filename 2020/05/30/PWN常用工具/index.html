@@ -28,7 +28,7 @@
 <meta property="og:description" content="开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。 IDA PRO交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。  x64dbgWindows的开源二进制调试器，旨在对您">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-05-30T12:02:57.000Z">
-<meta property="article:modified_time" content="2020-05-30T14:13:34.268Z">
+<meta property="article:modified_time" content="2020-06-11T13:01:50.902Z">
 <meta property="article:author" content="s0nnse">
 <meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
@@ -173,10 +173,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2020-05-30 20:02:57 / Modified: 22:13:34" itemprop="dateCreated datePublished" datetime="2020-05-30T20:02:57+08:00">2020-05-30</time>
+              <time title="Created: 2020-05-30 20:02:57" itemprop="dateCreated datePublished" datetime="2020-05-30T20:02:57+08:00">2020-05-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-11 21:01:50" itemprop="dateModified" datetime="2020-06-11T21:01:50+08:00">2020-06-11</time>
+              </span>
 
           
 
@@ -198,6 +204,7 @@
 <h4 id="peda"><a href="#peda" class="headerlink" title="peda"></a><a href="https://github.com/longld/peda">peda</a></h4><p>PEDA-GDB的Python漏洞利用开发协助。和pwndbg冲突，通过修改.gdbinit文件切换。</p>
 <h4 id="pwndbg"><a href="#pwndbg" class="headerlink" title="pwndbg"></a><a href="https://github.com/pwndbg/pwndbg">pwndbg</a></h4><p>pwndbg是一个GDB插件，它使使用GDB进行调试的工作量减少，重点放在低级软件开发人员，硬件黑客，逆向工程人员和漏洞利用开发人员所需的功能上。</p>
 <h4 id="QIRA"><a href="#QIRA" class="headerlink" title="QIRA"></a><a href="http://qira.me/" target="_blank" rel="noopener">QIRA</a></h4><p>程序运行时跟踪调试工具。</p>
+<h4 id="ROPgadget"><a href="#ROPgadget" class="headerlink" title="ROPgadget"></a><a href="https://github.com/JonathanSalwan/ROPgadget">ROPgadget</a></h4><p>使用此工具，您可以在二进制文件中搜索，以方便您对ROP的利用。ROPgadget在x86，x64，ARM，ARM64，PowerPC，SPARC和MIPS体系结构上支持ELF / PE / Mach-O格式。</p>
 
     </div>
 
@@ -278,7 +285,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA-PRO"><span class="nav-number">1.</span> <span class="nav-text">IDA PRO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x64dbg"><span class="nav-number">2.</span> <span class="nav-text"> x64dbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#checksec-sh"><span class="nav-number">3.</span> <span class="nav-text">checksec.sh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwntools"><span class="nav-number">4.</span> <span class="nav-text">pwntools</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#peda"><span class="nav-number">5.</span> <span class="nav-text">peda</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwndbg"><span class="nav-number">6.</span> <span class="nav-text">pwndbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QIRA"><span class="nav-number">7.</span> <span class="nav-text">QIRA</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA-PRO"><span class="nav-number">1.</span> <span class="nav-text">IDA PRO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x64dbg"><span class="nav-number">2.</span> <span class="nav-text"> x64dbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#checksec-sh"><span class="nav-number">3.</span> <span class="nav-text">checksec.sh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwntools"><span class="nav-number">4.</span> <span class="nav-text">pwntools</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#peda"><span class="nav-number">5.</span> <span class="nav-text">peda</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwndbg"><span class="nav-number">6.</span> <span class="nav-text">pwndbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QIRA"><span class="nav-number">7.</span> <span class="nav-text">QIRA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ROPgadget"><span class="nav-number">8.</span> <span class="nav-text">ROPgadget</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -292,7 +299,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
