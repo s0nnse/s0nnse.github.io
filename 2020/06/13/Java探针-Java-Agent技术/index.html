@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"github.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是探针首先我们需要了解什么是探针，探针能做什么？ 这里我们只涉及应用探针，它是一个用于捕获、分析应用执行情况，应用执行过程的组件。探针是一个与应用相互独立的程序，可以用来分析应用的执行情况，改变应用的执行逻辑等。 在Java体系中Java探针是基于JavaAgent和Java字节码注入技术的，使用Java探针技术可以在加载类的时候，对字节码进行修改。常见的有  springCloud自带了这些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java探针-Java Agent技术">
+<meta property="og:url" content="https://github.com/s0nnse/2020/06/13/Java%E6%8E%A2%E9%92%88-Java-Agent%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="s0nnse">
+<meta property="og:description" content="什么是探针首先我们需要了解什么是探针，探针能做什么？ 这里我们只涉及应用探针，它是一个用于捕获、分析应用执行情况，应用执行过程的组件。探针是一个与应用相互独立的程序，可以用来分析应用的执行情况，改变应用的执行逻辑等。 在Java体系中Java探针是基于JavaAgent和Java字节码注入技术的，使用Java探针技术可以在加载类的时候，对字节码进行修改。常见的有  springCloud自带了这些">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-06-13T01:23:12.000Z">
+<meta property="article:modified_time" content="2020-06-13T05:45:39.533Z">
+<meta property="article:author" content="s0nnse">
+<meta property="article:tag" content="RASP">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://github.com/s0nnse/2020/06/13/Java%E6%8E%A2%E9%92%88-Java-Agent%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java探针-Java Agent技术 | s0nnse</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0nnse</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/06/13/Java%E6%8E%A2%E9%92%88-Java-Agent%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java探针-Java Agent技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-06-13 09:23:12 / Modified: 13:45:39" itemprop="dateCreated datePublished" datetime="2020-06-13T09:23:12+08:00">2020-06-13</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="什么是探针"><a href="#什么是探针" class="headerlink" title="什么是探针"></a>什么是探针</h4><p>首先我们需要了解什么是探针，探针能做什么？</p>
+<p>这里我们只涉及应用探针，它是一个用于捕获、分析应用执行情况，应用执行过程的组件。探针是一个与应用相互独立的程序，可以用来分析应用的执行情况，改变应用的执行逻辑等。</p>
+<p>在Java体系中Java探针是基于JavaAgent和Java字节码注入技术的，使用Java探针技术可以在加载类的时候，对字节码进行修改。常见的有</p>
+<ul>
+<li><p>springCloud自带了这些功能</p>
+</li>
+<li><p>asm、javassist技术</p>
+</li>
+<li><p>springboot的Actuator扩展</p>
+</li>
+</ul>
+<p>接下来我们将依次分析JavaAgent和Java字节码两种技术</p>
+<h4 id="JavaAgent原理分析"><a href="#JavaAgent原理分析" class="headerlink" title="JavaAgent原理分析"></a>JavaAgent原理分析</h4><p>我们在Idea和Eclipse中调试java代码的时候其实使用的就是JavaAgent技术</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">"C:\Program Files\Java\jdk1.8.0_251\bin\java.exe" -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:1708,suspend=y,server=n -javaagent:C:\Users\***\AppData\Local\JetBrains\IntelliJIdea2020.1\captureAgent\debugger-agent.jar -Dfile.encoding=UTF-8 -classpath "C:\Program...</span><br></pre></td></tr></table></figure>
+
+<p>这里需要关注<code>-javaagent:</code>参数，这就是Idea调试技术的关键。</p>
+<p>先说一下它的用途，在JDK1.5以后，我们可以使用agent技术构建一个独立于应用程序的代理程序（即为Agent），用来协助监测、运行甚至替换其他JVM上的程序。使用它可以实现虚拟机级别的AOP功能。</p>
+<p>Agent分为两种，一种是在主程序之前运行的Agent即premain，一种是在主程序之后运行的Agent即agentmain（前者的升级版，1.6以后提供），下面我们写个例子演示进行演示。</p>
+<p>首先写个主程序</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">example</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is main here"</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="在主程序运行之前的代理程序"><a href="#在主程序运行之前的代理程序" class="headerlink" title="在主程序运行之前的代理程序"></a>在主程序运行之前的代理程序</h5><p>接着写一个Agent程序，注意这里Agent和主程序是两个不同的项目，Agent程序中可以不用写main函数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> testagent;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Agent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">premain</span><span class="params">(String args, Instrumentation instrumentation)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is premain here"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码只有一个premain方法，它代表着在主程序的main方法之前运行，args代表传递过来的参数inst则是agent技术主要使用的API，我们可以使用它来改变和重新定义类的行为。这里我们简单的进行一下打印。这里推荐使用maven进行打包，当然也可以使用其它的。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">Premain-class</span>&gt;</span>testagent.Agent<span class="tag">&lt;/<span class="name">Premain-class</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>主要关注的是<code>&lt;Premain-class&gt;</code>，这里需要添加Agent程序的类名</p>
+<p>我们分别打包主程序和Agent程序，运行一下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">E:\myrasp\testforasp\myagent\target&gt;java -javaagent:myagent-0.0.1-jar-with-dependencies.jar -jar mytest-0.0.1-jar-with-dependencies.jar</span><br><span class="line">This is premain here</span><br><span class="line">This is main here</span><br></pre></td></tr></table></figure>
+
+<p>这里<code>-javaagent</code>后设置agent程序，<code>-jar</code>后设置主程序，可以看到，我们Jar包中premain方法中的的代码在主函数运行之前就已经成功运行了！</p>
+<h5 id="在主程序运行之后的代理程序"><a href="#在主程序运行之后的代理程序" class="headerlink" title="在主程序运行之后的代理程序"></a>在主程序运行之后的代理程序</h5><p>在主程序运行之前的agent模式有一些缺陷，例如需要在主程序运行前就指定javaagent参数，premain方法中代码出现异常会导致主程序启动失败等，为了解决这些问题，JDK1.6以后提供了在程序运行之后改变程序的能力。它的实现步骤和之前的模式类似</p>
+<p>编写一个agent程序</p>
+<p>我们复用上面的Agent程序，这次需要写一个agentmain方法，由于是在主程序运行后再执行，意味着我们可以获取主程序运行时的信息，这里我们打印出来主程序中加载的类名。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">agentmain</span><span class="params">(String args, Instrumentation instrumentation)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is agentmain here"</span>);</span><br><span class="line">        Class&lt;?&gt;[] classes = instrumentation.getAllLoadedClasses();</span><br><span class="line">        <span class="keyword">for</span> (Class&lt;?&gt; cls : classes) &#123;</span><br><span class="line">            System.out.println(cls.getName());</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"agent run complete"</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>打包之前需要修改一下pom.xml文件，添加<code>Agent-class</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Agent-class</span>&gt;</span>testagent.Agent<span class="tag">&lt;/<span class="name">Agent-class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Premain-class</span>&gt;</span>testagent.Agent<span class="tag">&lt;/<span class="name">Premain-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">manifestEntries</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>启动主程序，接下来还需要编写加载agent类的程序</p>
+<p>在程序运行后加载，我们不可能在主程序中编写加载的代码，只能另写程序，那么另写程序如何与主程序进行通信？这里用到的机制就是attach机制，它可以将JVM A连接至JVM B，并发送指令给JVM B执行，JDK自带常用工具如jstack，jps等就是使用该机制来实现的。</p>
+<p>这里需要先修改下主程序，需要让主程序可以阻塞，要不然主程序运行后立即就结束了，无法进行attach操作。修改的主程序后打包运行，让主程序阻塞在那</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.BufferedReader;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStreamReader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">example</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is main here"</span>);</span><br><span class="line">        BufferedReader br = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(System.in ));</span><br><span class="line">        String read = <span class="keyword">null</span>;</span><br><span class="line">        System.out.print(<span class="string">"输入数据："</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            read = br.readLine();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"输入数据："</span>+read);</span><br><span class="line">        System.out.println(<span class="string">"main run complete"</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着编写attch程序</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.tools.attach.AgentInitializationException;</span><br><span class="line"><span class="keyword">import</span> com.sun.tools.attach.AgentLoadException;</span><br><span class="line"><span class="keyword">import</span> com.sun.tools.attach.AttachNotSupportedException;</span><br><span class="line"><span class="keyword">import</span> com.sun.tools.attach.VirtualMachine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">attach</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is attach here"</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            VirtualMachine vm = VirtualMachine.attach(<span class="string">"2416"</span>);</span><br><span class="line">            vm.loadAgent(<span class="string">"E:\\myrasp\\testforasp\\myagent\\target\\myagent-0.0.1-jar-with-dependencies.jar"</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (AttachNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (AgentLoadException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (AgentInitializationException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：写这段代码的时候 IDE 可能提示找不到 jar 包，这时候将 jdk/lib/tools.jar 添加的项目的 classpath 中。</p>
+<p>我们使用VirtualMachine attach到目标进程，其中2416为主程序进程的PID，可以使用jps命令获得</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">E:\myrasp\testforasp&gt;jps</span><br><span class="line">2416 jar</span><br><span class="line">11784 RemoteMavenServer36</span><br><span class="line">16456</span><br><span class="line">8284 Jps</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用VirtualMachine.list方法获取本机上所有的Java进程，再来判断java进程，loadAgent方法第一个参数为之前Agent的Jar包在本机中的路径，第二个参数为传入agentmain的args参数，此处为null，运行attach程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">E:\myrasp\testforasp\mytest\target&gt;java -jar mytest-0.0.1-jar-with-dependencies.jar</span><br><span class="line">This is main here</span><br><span class="line">输入数据：This is agentmain here</span><br><span class="line">testagent.Agent</span><br><span class="line">example</span><br><span class="line">sun.reflect.DelegatingMethodAccessorImpl</span><br><span class="line">sun.reflect.NativeMethodAccessorImpl</span><br><span class="line">sun.instrument.InstrumentationImpl$1</span><br><span class="line">java.lang.Package</span><br><span class="line">sun.misc.URLClassPath$FileLoader</span><br><span class="line">java.util.concurrent.ConcurrentHashMap$ForwardingNode</span><br><span class="line">[Lsun.instrument.TransformerManager$TransformerInfo;</span><br><span class="line">sun.instrument.TransformerManager$TransformerInfo</span><br><span class="line">sun.instrument.TransformerManager</span><br><span class="line">sun.instrument.InstrumentationImpl</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，agentmain方法中的代码已经在主程序中顺利运行了，并且打印出了程序中加载的类，agentmain的使用实际上会更复杂，但之后丰富Java探针的时候主要使用premain的方法，就不在赘述。</p>
+<p>以上是是Java Agent的俩个简单的例子，Java Agent十分强大，它能做到的不仅仅是打印几个监控数值而已，还包括使用Transformer等高级功能进行类替换，方法修改等，要使用Instrumentation的相关API则需要对字节码等技术有较深的认识。</p>
+<h4 id="动态字节码原理分析"><a href="#动态字节码原理分析" class="headerlink" title="动态字节码原理分析"></a>动态字节码原理分析</h4><p>Java动态字节码主要使用了JVM TI接口进行实现，  JVMTI(JVM Tool Interface) 位于jpda 最底层， 是Java 虚拟机所提供的native编程接口。 JVMTI可以提供性能分析、debug、内存管理、线程分析等功能。</p>
+<p>首先再次对主程序进行修改，让主程序去读取一个文件，并打印其中的内容</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.BufferedReader;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStreamReader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">example</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"This is main here"</span>);</span><br><span class="line">        String path = <span class="string">"E:\\myrasp\\url.txt"</span>;</span><br><span class="line">        readTxtFile(path);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">readTxtFile</span><span class="params">(String filePath)</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String encoding=<span class="string">"GBK"</span>;</span><br><span class="line">            File file=<span class="keyword">new</span> File(filePath);</span><br><span class="line">            <span class="keyword">if</span>(file.isFile() &amp;&amp; file.exists())&#123; <span class="comment">//判断文件是否存在</span></span><br><span class="line">                InputStreamReader read = <span class="keyword">new</span> InputStreamReader(</span><br><span class="line">                        <span class="keyword">new</span> FileInputStream(file),encoding);<span class="comment">//考虑到编码格式</span></span><br><span class="line">                BufferedReader bufferedReader = <span class="keyword">new</span> BufferedReader(read);</span><br><span class="line">                String lineTxt = <span class="keyword">null</span>;</span><br><span class="line">                <span class="keyword">while</span>((lineTxt = bufferedReader.readLine()) != <span class="keyword">null</span>)&#123;</span><br><span class="line">                    System.out.println(lineTxt);</span><br><span class="line">                &#125;</span><br><span class="line">                read.close();</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                System.out.println(<span class="string">"找不到指定的文件"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"读取文件内容出错"</span>);</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先运行一下看下没用agent情况下的执行结果</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">E:\myrasp\testforasp\mytest\target&gt;java -jar mytest-0.0.1-jar-with-dependencies.jar</span><br><span class="line">This is main here</span><br><span class="line">./catalina.sh jpda start</span><br><span class="line">http://127.0.0.1:8080/java-sec-code-1.0.0/xss/reflect?xss=%3Cscript%3Ealert(1)%3C/script%3E</span><br></pre></td></tr></table></figure>
+
+<p>我们知道，我们编写的 Java 代码都是要被编译成字节码后才能放到 JVM 里执行的，而字节码一旦被加载到虚拟机中，就可以被解释执行。</p>
+<h5 id="javassist"><a href="#javassist" class="headerlink" title="javassist"></a>javassist</h5><p>字节码文件（.class）就是普通的二进制文件，它是通过 Java 编译器生成的。而只要是文件就可以被改变，如果我们用特定的规则解析了原有的字节码文件，对它进行修改或者干脆重新定义，这不就可以改变代码行为了么。</p>
+<p>Java 生态里有很多可以动态生成字节码的技术，像 BCEL、Javassist、ASM、CGLib 等，它们各有自己的优势。有的使用复杂却功能强大、有的简单确也性能些差。这里我们使用javassist进行演示，因为使用javassist编写代码比较简单。</p>
+<p>这里编写一个修改字节码的类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> testagent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javassist.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.ClassFileTransformer;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.IllegalClassFormatException;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.UnmodifiableClassException;</span><br><span class="line"><span class="keyword">import</span> java.security.ProtectionDomain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassTransformer</span> <span class="keyword">implements</span> <span class="title">ClassFileTransformer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Instrumentation instrumentation;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ClassTransformer</span><span class="params">(Instrumentation instrumentation)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.instrumentation = instrumentation;</span><br><span class="line">        instrumentation.addTransformer(<span class="keyword">this</span>, <span class="keyword">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">retransform</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Class[] loadedClasses = instrumentation.getAllLoadedClasses();</span><br><span class="line">        <span class="keyword">for</span> (Class clazz : loadedClasses) &#123;</span><br><span class="line">            <span class="keyword">if</span> (instrumentation.isModifiableClass(clazz) &amp;&amp; !clazz.getName().startsWith(<span class="string">"java.lang.invoke.LambdaForm"</span>)) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    instrumentation.retransformClasses(clazz);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (UnmodifiableClassException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">byte</span>[] transform(ClassLoader loader, String className, Class&lt;?&gt; classBeingRedefined, ProtectionDomain protectionDomain, <span class="keyword">byte</span>[] classfileBuffer) <span class="keyword">throws</span> IllegalClassFormatException &#123;</span><br><span class="line">        <span class="keyword">if</span>(!<span class="string">"java/io/FileInputStream"</span>.equals(className)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(className);</span><br><span class="line">        String loadName = className.replace(<span class="string">"/"</span>, <span class="string">"."</span>);</span><br><span class="line">        CtClass ctClass = <span class="keyword">null</span>;</span><br><span class="line">        ClassPool classPool = ClassPool.getDefault();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ctClass = classPool.makeClass(<span class="keyword">new</span> ByteArrayInputStream(classfileBuffer));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String checkSqlSrc = getInvokeStaticSrc(ClassTransformer.class, "checkReadFile", "$1", File.class);</span><br><span class="line">            CtBehavior ctMethod = ctClass.getConstructor(<span class="string">"(Ljava/io/File;)V"</span>);</span><br><span class="line">            ctMethod.insertBefore(checkSqlSrc);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NotFoundException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CannotCompileException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> ctClass.toBytecode();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CannotCompileException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkReadFile</span><span class="params">(File file)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"is method checkReadFile"</span>);</span><br><span class="line">        System.out.println(file);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getInvokeStaticSrc</span><span class="params">(Class invokeClass, String methodName, String paramString, Class... parameterTypes)</span> </span>&#123;</span><br><span class="line">        String src;</span><br><span class="line">        String invokeClassName = invokeClass.getName();</span><br><span class="line">        src = invokeClassName + <span class="string">'.'</span> + methodName + <span class="string">"("</span> + paramString + <span class="string">");"</span>;</span><br><span class="line">        src = <span class="string">"try &#123;"</span> + src + <span class="string">"&#125; catch (Throwable t) &#123;throw t;&#125;"</span>;</span><br><span class="line">        <span class="keyword">return</span> src;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们一个一个来看，这里的checkReadFile是插入到字节码中被调用的函数，getInvokeStaticSrc是用来生成插入的代码，即到时候我们插入到class文件里的代码。retransform是用来重新转换已修改的类，因为在permian之前已经有类被加载到jvm中，这样在premain之前加载的类，主要是系统类就不会被修改，需要通过retransform进行重新加载。ClassTransformer方法之后会讲到，主要是用来让jvm使用我们编写的类加载器。</p>
+<p>这里主要讲讲transform函数，继承ClassFileTransformer接口后，当实现transform方法后，在permain加载后会调用transform方法里的逻辑，进行加载类的修改。</p>
+<p>通过</p>
+<p><code>ClassPool classPool = ClassPool.getDefault();</code></p>
+<p>获取所有加载的类</p>
+<p>通过</p>
+<p><code>ctClass = classPool.makeClass(new ByteArrayInputStream(classfileBuffer));</code></p>
+<p>创建目标类</p>
+<p>通过</p>
+<p><code>CtBehavior ctMethod = ctClass.getConstructor(&quot;(Ljava/io/File;)V&quot;);</code></p>
+<p>获取目标类的目标函数</p>
+<p>通过</p>
+<p><code>ctMethod.insertBefore(checkSqlSrc);</code></p>
+<p>在目标函数的最前面插入代码，<code>checkSqlSrc</code>通过getInvokeStaticSrc函数生成要插入的代码，这里不进行详述，最简单的只是插入一串打印字符的如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checkSqlSrc=<span class="string">"&#123;System.out.println(\"This is checkSqlSrc\");&#125;"</span></span><br></pre></td></tr></table></figure>
+
+<p>这里实现的逻辑是在系统类的FileInputStream函数执行前先执行checkReadFile函数的内容。</p>
+<h5 id="Instrumentation"><a href="#Instrumentation" class="headerlink" title="Instrumentation"></a>Instrumentation</h5><p>现在字节码是修改完了，可是 JVM 在执行时会使用自己的类加载器加载字节码文件，加载后并不会理会我们做出的修改，要想实现对现有类的修改，我们还需要搭配 Java 的另一个库 instrument。</p>
+<p>instrument 是 JVM 提供的一个可以修改已加载类文件的类库。1.6以前，instrument 只能在 JVM 刚启动开始加载类时生效，之后，instrument 更是支持了在运行时对类定义的修改。</p>
+<p>要使用 instrument 的类修改功能，我们需要实现它的 ClassFileTransformer 接口定义一个类文件转换器。它唯一的一个 transform() 方法会在类文件被加载时调用，在 transform 方法里，我们可以对传入的二进制字节码进行改写或替换，生成新的字节码数组后返回，JVM 会使用 transform 方法返回的字节码数据进行类的加载。</p>
+<p>这些工作我们在上面的代码里已经实现了，在ClassTransformer函数中使用<code>instrumentation.addTransformer</code>将转换方法加载进来。</p>
+<p>最后我们回到Agent类中，修改一下permain函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">premain</span><span class="params">(String args, Instrumentation instrumentation)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"This is premain here"</span>);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//  将当前jar文件加入到了jdk的根路径下</span></span><br><span class="line">        JarFileHelper.addJarToBootstrap(instrumentation);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    transformer = <span class="keyword">new</span> ClassTransformer(instrumentation);</span><br><span class="line">    transformer.retransform();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里通过</p>
+<p><code>transformer = new ClassTransformer(instrumentation);</code></p>
+<p>让让JVM 能够调用我们提供的类转换器</p>
+<p>注意：当转换系统类的时候，需要将当前jar文件加入到了jdk的根路径下。</p>
+<p>最后将Agent打包生成jar包，通过运行时使用javaagent参数配置我们的agent</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">E:\myrasp\testforasp\mytest\target&gt;java -javaagent:myagent-0.0.1-jar-with-dependencies.jar -jar mytest-0.0.1-jar-with-dependencies.jar</span><br><span class="line">This is premain here</span><br><span class="line">java&#x2F;io&#x2F;FileInputStream</span><br><span class="line">is method checkReadFile</span><br><span class="line">C:\Program Files\Java\jre1.8.0_251\lib\security\java.security</span><br><span class="line">This is main here</span><br><span class="line">is method checkReadFile</span><br><span class="line">E:\myrasp\url.txt</span><br><span class="line">.&#x2F;catalina.sh jpda start</span><br><span class="line">http:&#x2F;&#x2F;127.0.0.1:8080&#x2F;java-sec-code-1.0.0&#x2F;xss&#x2F;reflect?xss&#x3D;%3Cscript%3Ealert(1)%3C&#x2F;script%3E</span><br></pre></td></tr></table></figure>
+
+<p>可以看到我们完成了动态字节码注入，在不改变主程序代码的情况下，插入了额外的逻辑。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>探针技术其实就是动态或者说运行时修改类，大的方向说有2种方式：</p>
+<ol>
+<li>使用 agentmain，不需要重新创建类加载器，可直接修改类，但是有很多限制。</li>
+<li>使用 premain 可以在类第一次加载之前修改，加载之后修改需要重新创建类加载器。或者在自定义的类加载器种修改，但这种方式比较耦合。</li>
+</ol>
+<p>无论是哪种，都需要字节码修改的库，比如ASM，javassist ，cglib 等，很多。总之，通过java.lang.instrument 包配合字节码库，可以很方便的动态修改类，或者进行热部署。</p>
+<p>目前用的Java探针的应用主要有APM和RASP两种，APM即应用性能管理软件，在程序运行的时候监控程序性能的情况，另一种RASP（Runtime application self-protection）是一种应用安全防护的新形式，在应用中添加安全防护逻辑，相比于WAF来说RASP可以获取到应用上下文内容，可以更加精确，更少漏报。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RASP/" rel="tag"># RASP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/01/%E4%BB%8Eret2syscall%E5%85%A5%E5%9D%91%E6%A0%88%E6%BA%A2%E5%87%BA/" rel="prev" title="从ret2syscall入坑栈溢出">
+      <i class="fa fa-chevron-left"></i> 从ret2syscall入坑栈溢出
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是探针"><span class="nav-number">1.</span> <span class="nav-text">什么是探针</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JavaAgent原理分析"><span class="nav-number">2.</span> <span class="nav-text">JavaAgent原理分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#在主程序运行之前的代理程序"><span class="nav-number">2.1.</span> <span class="nav-text">在主程序运行之前的代理程序</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#在主程序运行之后的代理程序"><span class="nav-number">2.2.</span> <span class="nav-text">在主程序运行之后的代理程序</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#动态字节码原理分析"><span class="nav-number">3.</span> <span class="nav-text">动态字节码原理分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#javassist"><span class="nav-number">3.1.</span> <span class="nav-text">javassist</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Instrumentation"><span class="nav-number">3.2.</span> <span class="nav-text">Instrumentation</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">s0nnse</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0nnse</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
