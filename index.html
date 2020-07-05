@@ -556,10 +556,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2020-05-31 10:10:06 / Modified: 21:29:20" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
+              <time title="Created: 2020-05-31 10:10:06" itemprop="dateCreated datePublished" datetime="2020-05-31T10:10:06+08:00">2020-05-31</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-07-05 20:20:36" itemprop="dateModified" datetime="2020-07-05T20:20:36+08:00">2020-07-05</time>
+              </span>
 
           
 
@@ -604,6 +610,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> s; <span class="comment">// [esp+1Ch] [ebp-64h]</span></span><br></pre></td></tr></table></figure>
 
 <p>s变量在内存中的位置距离栈顶+1Ch个字节，距离栈底-64h个字节。这里不能使用<code>[ebp-64h]</code>来进行偏移的计算，因为查看汇编代码可知s是相对于esp的索引，所以s变量的偏移量相对于esp是正确的，而相对于ebp的偏移量是错误的，这就需要通过动态调试来获取偏移量。</p>
+<p>补充：esp是栈指针，一般情况下会使用ebp来存取栈。但是在许多时候，编译器会按优化方式来编译程序，栈寻址稍有不同。这是，编译器为了节省ebp寄存器或尽可能减少代码以提高速度，会直接通过esp对参数进行寻址。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.text:080486A7                 lea     eax, [esp+80h+s]</span><br><span class="line">.text:080486AB                 mov     [esp], eax      ; s</span><br><span class="line">.text:080486AE                 call    _gets</span><br></pre></td></tr></table></figure>
 
 <p>通过gdb进行调试，在call的位置下断点。这里在介绍下常用的几种下断点的方式</p>
