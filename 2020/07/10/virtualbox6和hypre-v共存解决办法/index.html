@@ -20,20 +20,22 @@
     var CONFIG = {"hostname":"github.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。 IDA PRO交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。  x64dbgWindows的开源二进制调试器，旨在对您">
+  <meta name="description" content="0x00最近尝试使用了微软的WSL2，体验非常好，但同时还要使用VrtualBox会和wsl2使用的Hyper-v冲突，造成VrtualBox不能正常使用。原因是Hyper-v的虚拟方式不一样，开启Hyper-v后会将用户的桌面系统给虚拟化，用户的桌面系统就会成为Hyper-v的虚拟系统，而Hyper-v的虚拟系统是不允许再开虚拟机的，因此开启Hyper-v后VM和Vbox就不能运行。    而V">
 <meta property="og:type" content="article">
-<meta property="og:title" content="PWN常用工具">
-<meta property="og:url" content="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:title" content="virtualbox6和hypre-v共存解决办法">
+<meta property="og:url" content="https://github.com/s0nnse/2020/07/10/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/index.html">
 <meta property="og:site_name" content="s0nnse">
-<meta property="og:description" content="开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。 IDA PRO交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。  x64dbgWindows的开源二进制调试器，旨在对您">
+<meta property="og:description" content="0x00最近尝试使用了微软的WSL2，体验非常好，但同时还要使用VrtualBox会和wsl2使用的Hyper-v冲突，造成VrtualBox不能正常使用。原因是Hyper-v的虚拟方式不一样，开启Hyper-v后会将用户的桌面系统给虚拟化，用户的桌面系统就会成为Hyper-v的虚拟系统，而Hyper-v的虚拟系统是不允许再开虚拟机的，因此开启Hyper-v后VM和Vbox就不能运行。    而V">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-05-30T12:02:57.000Z">
-<meta property="article:modified_time" content="2020-06-11T13:01:50.902Z">
+<meta property="og:image" content="https://github.com/images/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/%E8%99%9A%E6%8B%9F%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94.jpg">
+<meta property="article:published_time" content="2020-07-10T14:36:45.000Z">
+<meta property="article:modified_time" content="2020-07-10T14:43:45.094Z">
 <meta property="article:author" content="s0nnse">
-<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="杂项">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/images/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/%E8%99%9A%E6%8B%9F%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94.jpg">
 
-<link rel="canonical" href="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/">
+<link rel="canonical" href="https://github.com/s0nnse/2020/07/10/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">
 
 
 <script id="page-configurations">
@@ -46,7 +48,7 @@
   };
 </script>
 
-  <title>PWN常用工具 | s0nnse</title>
+  <title>virtualbox6和hypre-v共存解决办法 | s0nnse</title>
   
 
 
@@ -151,7 +153,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/05/30/PWN%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7/">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/07/10/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -164,7 +166,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          PWN常用工具
+          virtualbox6和hypre-v共存解决办法
         </h1>
 
         <div class="post-meta">
@@ -173,16 +175,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2020-05-30 20:02:57" itemprop="dateCreated datePublished" datetime="2020-05-30T20:02:57+08:00">2020-05-30</time>
+              <time title="Created: 2020-07-10 22:36:45 / Modified: 22:43:45" itemprop="dateCreated datePublished" datetime="2020-07-10T22:36:45+08:00">2020-07-10</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-06-11 21:01:50" itemprop="dateModified" datetime="2020-06-11T21:01:50+08:00">2020-06-11</time>
-              </span>
 
           
 
@@ -195,16 +191,25 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>开始入坑PWN的学习，本文记录PWN中所使用到的一些工具和软件，保持长期更新。</p>
-<h4 id="IDA-PRO"><a href="#IDA-PRO" class="headerlink" title="IDA PRO"></a><a href="">IDA PRO</a></h4><p>交互式反汇编器专业版（Interactive Disassembler Professional），人们常称其为IDA Pro，或简称为IDA。是目前最棒的一个静态反编译软件，为众多0day世界的成员和ShellCode安全分析人士不可缺少的利器。</p>
-<h4 id="x64dbg"><a href="#x64dbg" class="headerlink" title=" x64dbg"></a><a href="https://github.com/x64dbg/x64dbg"> x64dbg</a></h4><p>Windows的开源二进制调试器，旨在对您没有源代码的可执行文件进行恶意软件分析和反向工程。有许多可用功能，还有一个全面的<a href="http://plugins.x64dbg.com/" target="_blank" rel="noopener">插件系统</a>可添加您自己的<a href="http://plugins.x64dbg.com/" target="_blank" rel="noopener">插件</a>。</p>
-<h4 id="checksec-sh"><a href="#checksec-sh" class="headerlink" title="checksec.sh"></a><a href="https://github.com/slimm609/checksec.sh">checksec.sh</a></h4><p>Checksec是一个bash脚本，用于检查可执行文件的属性（例如PIE，RELRO，PaX，Canaries，ASLR，Fortify Source）。它最初是由Tobias Klein编写的，其原始资源可以在这里找到：<a href="http://www.trapkit.de/tools/checksec.html" target="_blank" rel="noopener">http</a> : <a href="http://www.trapkit.de/tools/checksec.html" target="_blank" rel="noopener">//www.trapkit.de/tools/checksec.html</a></p>
-<p>查看程序的基本信息，主要查看程序开启了什么保护。</p>
-<h4 id="pwntools"><a href="#pwntools" class="headerlink" title="pwntools"></a><a href="https://github.com/Gallopsled/pwntools">pwntools</a></h4><p>Pwntools是一个CTF框架和漏洞利用开发库。它是用Python编写的，旨在用于快速原型开发和开发，旨在使漏洞利用程序编写尽可能简单。</p>
-<h4 id="peda"><a href="#peda" class="headerlink" title="peda"></a><a href="https://github.com/longld/peda">peda</a></h4><p>PEDA-GDB的Python漏洞利用开发协助。和pwndbg冲突，通过修改.gdbinit文件切换。</p>
-<h4 id="pwndbg"><a href="#pwndbg" class="headerlink" title="pwndbg"></a><a href="https://github.com/pwndbg/pwndbg">pwndbg</a></h4><p>pwndbg是一个GDB插件，它使使用GDB进行调试的工作量减少，重点放在低级软件开发人员，硬件黑客，逆向工程人员和漏洞利用开发人员所需的功能上。</p>
-<h4 id="QIRA"><a href="#QIRA" class="headerlink" title="QIRA"></a><a href="http://qira.me/" target="_blank" rel="noopener">QIRA</a></h4><p>程序运行时跟踪调试工具。</p>
-<h4 id="ROPgadget"><a href="#ROPgadget" class="headerlink" title="ROPgadget"></a><a href="https://github.com/JonathanSalwan/ROPgadget">ROPgadget</a></h4><p>使用此工具，您可以在二进制文件中搜索，以方便您对ROP的利用。ROPgadget在x86，x64，ARM，ARM64，PowerPC，SPARC和MIPS体系结构上支持ELF / PE / Mach-O格式。</p>
+        <h2 id="0x00"><a href="#0x00" class="headerlink" title="0x00"></a>0x00</h2><p>最近尝试使用了微软的WSL2，体验非常好，但同时还要使用VrtualBox会和wsl2使用的Hyper-v冲突，造成VrtualBox不能正常使用。原因是Hyper-v的虚拟方式不一样，开启Hyper-v后会将用户的桌面系统给虚拟化，用户的桌面系统就会成为Hyper-v的虚拟系统，而Hyper-v的虚拟系统是不允许再开虚拟机的，因此开启Hyper-v后VM和Vbox就不能运行。</p>
+<img src="/images/virtualbox6和hypre-v共存解决办法/虚拟区别对比.jpg" alt="虚拟区别对比" style="zoom: 80%;" />
+
+
+<p>而Vbox在第六个版本（Vbox6.0）中新增了利用Hyper-v的api进行虚拟化系统</p>
+<p>这个功能还是实验性的功能，可能会出现意想不到的问题，出现问题请向官方反馈以助于完善。</p>
+<h2 id="0x01"><a href="#0x01" class="headerlink" title="0x01"></a>0x01</h2><p>前提要求：</p>
+<ol>
+<li>Windows 版本: 2004+</li>
+<li>VirtualBox 版本: 6.0+</li>
+<li>CPU启用虚拟化</li>
+</ol>
+<p>由于这个功能还是实验性的功能，所以没有现成的GUI按钮或界面开启这个功能，需要使用命令行开启。<br>找到vbox的安装目录，确定目录下有<code>VBoxManage.exe</code><br>在该目录打开命令行工具（目录空白位置按住shift 鼠标点击右键，选择<code>在此处打开命令窗口</code>或<code>在此处打开PwerShell窗口</code>）<br>命令窗口(cmd)输入：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">指定vbox下的虚拟系统开启这个功能</span></span><br><span class="line">VBoxManage setextradata "&lt;虚拟机名字&gt;" "VBoxInternal/NEM/UseRing0Runloop" 0</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">或指定vbox所有虚拟系统开启</span></span><br><span class="line">VBoxManage setextradata global "VBoxInternal/NEM/UseRing0Runloop" 0</span><br></pre></td></tr></table></figure>
+
+<p>PowerShell需要加<code>./</code>和<code>.exe</code></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#指定vbox下的虚拟系统开启这个功能</span></span><br><span class="line">./VBoxManage.exe setextradata <span class="string">"&lt;虚拟机名字&gt;"</span> <span class="string">"VBoxInternal/NEM/UseRing0Runloop"</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#或指定vbox所有虚拟系统开启</span></span><br><span class="line">./VBoxManage.exe setextradata global <span class="string">"VBoxInternal/NEM/UseRing0Runloop"</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02"><a href="#0x02" class="headerlink" title="0x02"></a>0x02</h2><p>开启后，就可以同时使用Hyper-v和Vbox。</p>
 
     </div>
 
@@ -214,7 +219,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/PWN/" rel="tag"># PWN</a>
+              <a href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag"># 杂项</a>
           </div>
 
         
@@ -222,10 +227,13 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2020/05/30/PWN%E5%B8%B8%E8%A7%81%E6%9C%AF%E8%AF%AD/" rel="next" title="PWN常见术语">
-      PWN常见术语 <i class="fa fa-chevron-right"></i>
+    <a href="/2020/07/10/%E6%9D%82%E9%A1%B9%E5%A4%87%E5%BF%98%E5%BD%95/" rel="prev" title="杂项备忘录">
+      <i class="fa fa-chevron-left"></i> 杂项备忘录
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/10/PHP%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0%E4%B9%8Bcreate-function/" rel="next" title="PHP代码中的危险函数之create_function">
+      PHP代码中的危险函数之create_function <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -285,7 +293,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA-PRO"><span class="nav-number">1.</span> <span class="nav-text">IDA PRO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x64dbg"><span class="nav-number">2.</span> <span class="nav-text"> x64dbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#checksec-sh"><span class="nav-number">3.</span> <span class="nav-text">checksec.sh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwntools"><span class="nav-number">4.</span> <span class="nav-text">pwntools</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#peda"><span class="nav-number">5.</span> <span class="nav-text">peda</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pwndbg"><span class="nav-number">6.</span> <span class="nav-text">pwndbg</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QIRA"><span class="nav-number">7.</span> <span class="nav-text">QIRA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ROPgadget"><span class="nav-number">8.</span> <span class="nav-text">ROPgadget</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00"><span class="nav-number">1.</span> <span class="nav-text">0x00</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01"><span class="nav-number">2.</span> <span class="nav-text">0x01</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02"><span class="nav-number">3.</span> <span class="nav-text">0x02</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

